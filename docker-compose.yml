@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: beats
+    volumes:
+      - ./.postgres-volume:/var/lib/postgresql/data
+
+  web:
+    depends_on:
+      - postgres
+    build: .
+    command: gunicorn --workers 3 --bind 0.0.0.0:${PORT:-8000} --timeout 300 beats.wsgi:application
+    restart: unless-stopped
+    ports: 
+      - ${PORT:-8000}:${PORT:-8000}
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@192.168.1.7:5433/beats
+    volumes:
+      - .media:/app/beats/media 
+      - .staticfiles:/app/beats/staticfiles 
+
+  # nginx:
+  #   depends_on:
+  #     - web
+  #   restart: always
+  #   build:
+  #     context: nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - .media:/app/beats/media 
+  #     - .staticfiles:/app/beats/staticfiles 

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Criar conta{% endblock %}
+
+
+{% block content %}
+
+<h1>Criar conta</h1>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  
+  {{ form.non_field_errors }}
+
+  <div>
+    <label>Usuário</label>
+    {{ form.username }} {{ form.username.errors }}
+  </div>
+  <div>
+    <label>Email</label>
+    {{ form.email }} {{ form.email.errors }}
+  </div>
+  <div>
+    <label>Senha</label>
+    {{ form.password1 }} {{ form.password1.errors }}
+  </div>
+  <div>
+    <label>Confirme a senha</label>
+    {{ form.password2 }} {{ form.password2.errors }}
+  </div>
+  <button type="submit">Cadastrar</button>
+</form>
+
+<p>Já tem conta? <a href="{% url 'profiles:signin' %}">Entrar</a></p>
+{% endblock %}

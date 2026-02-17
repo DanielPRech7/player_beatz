@@ -1,0 +1,31 @@
+[run]
+source =
+    beats/
+
+parallel = True
+concurrency = multiprocessing
+relative_files = True
+
+omit =
+    *settings.py
+    *tests*
+    */tests/*
+    */migrations/*
+    */urls.py
+    *__init__*
+    *wsgi.py
+    *manage.py
+    *apps.py
+    *env*
+    *venv*
+    *storage.py
+    *asgi.py
+    */contrib/*
+    Dockerfile*
+
+[report]
+precision = 2
+show_missing = True
+skip_empty = True
+fail_under = 80
+ignore_errors = True

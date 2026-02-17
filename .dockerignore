@@ -1,0 +1,5 @@
+.postgres-volume
+.staticfiles/
+.venv/
+.media/
+nginx

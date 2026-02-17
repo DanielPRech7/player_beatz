@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<main id="delete">
+    
+  <section>
+    <div class="container text-center">
+      <form method="post">
+        {% csrf_token %}
+        <p>Tem certeza de que deseja apagar o "{{ object }}"?</p>
+        <p>Todos os seus itens relacionados serão removidos.</p>
+        <button type="submit" class="btn btn-danger">Confirmar</button>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}

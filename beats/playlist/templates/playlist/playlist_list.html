@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Minhas Playlists{% endblock %}
+
+{% block content %}
+
+<style>
+    .playlist-card {
+        background-color: #2a2a2a;
+        min-height: 250px;
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .playlist-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.5) !important;
+    }
+
+    .content-area {
+        background-color: #121212;
+        min-height: 100vh;
+    }
+
+    /* Estilo para a estrela não ser "atropelada" pelo link do card */
+    .btn-favoritar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 20;
+        background: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: background 0.3s;
+    }
+    
+    .btn-favoritar:hover {
+        background: rgba(0,0,0,0.8);
+    }
+</style>
+
+<div class="row g-0">
+    <div class="col-md-2 sidebar p-4 d-flex flex-column" style="min-height: 100vh;">
+        <h3 class="mb-4 text-white">Beats.app</h3>
+        <ul class="nav flex-column mb-auto">
+            <li class="nav-item">
+                <a class="nav-link text-white d-flex align-items-center" href="{% url 'playlist_list' %}">
+                    <i class="bi bi-house-door-fill me-2"></i> Início
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white d-flex align-items-center" href="{% url 'admin:index' %}">
+                    <i class="bi bi-gear-fill me-2"></i> Admin
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="text-secondary">
+        
+        <a href="{% url 'criar_playlist' %}" class="btn btn-success w-100 mb-3" style="font-size: 1.1rem;">
+            + Criar Nova Playlist
+        </a>
+        <a href="{% url 'amizades:lista' %}" class="btn btn-primary w-100" style="font-size: 1.1rem;">
+            <i class="bi bi-people-fill me-2"></i> Amigos
+        </a>
+    </div>
+
+    <div class="col-md-10 p-5 content-area">
+        
+        {% if user.is_authenticated %}
+            {% if user.playlists_favoritas.exists %}
+                <h2 class="text-white mb-4"><i class="bi bi-star-fill text-warning me-2"></i>Playlists Favoritas</h2>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 mb-5">
+                    {% for playlist in user.playlists_favoritas.all %}
+                    <div class="col">
+                        <div class="card h-100 p-3 shadow-lg playlist-card position-relative">
+                            <button class="btn-favoritar" data-id="{{ playlist.id }}">
+                                <i class="bi bi-star-fill text-warning"></i>
+                            </button>
+
+                            <a href="{% url 'playlist_detail' pk=playlist.pk %}" class="stretched-link">
+                                {% if playlist.capa %}
+                                    <img src="{{ playlist.capa.url }}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                                {% endif %}
+                            </a>
+
+                            <div class="card-body p-0 pt-3">
+                                <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.nome }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <hr class="text-secondary mb-5">
+            {% endif %}
+        {% endif %}
+
+        <h1 class="mb-5 text-white">Suas Playlists</h1>
+
+        <div class="card p-3 mb-5" style="background-color: #2a2a2a; border: none;">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="text-white small">Buscar por nome</label>
+                    {{ filter.form.nome }} 
+                </div>
+                <div class="col-md-3">
+                    <label class="text-white small">Ordenar por Tempo</label>
+                    <select name="sort_tempo" class="form-select">
+                        <option value="">Padrão</option>
+                        <option value="mais_tempo" {% if request.GET.sort_tempo == 'mais_tempo' %}selected{% endif %}>Mais Assistidas</option>
+                        <option value="menos_tempo" {% if request.GET.sort_tempo == 'menos_tempo' %}selected{% endif %}>Menos Assistidas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if playlists %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+            {% for playlist in playlists %}
+            <div class="col">
+                <div class="card h-100 p-3 shadow-lg playlist-card position-relative 
+                    {% if playlist.id == id_mais_ouvida %} border border-success border-3 {% endif %}"
+                    data-playlist-id="{{ playlist.id }}"
+                    {% if playlist.id == id_mais_ouvida %} 
+                        style="box-shadow: 0 0 20px rgba(25, 135, 84, 0.6) !important; background-color: #2a2a2a;" 
+                    {% endif %}>
+
+                    {% if user.is_authenticated %}
+                    <button class="btn-favoritar" data-id="{{ playlist.id }}">
+                        <i class="bi {% if user in playlist.favoritos.all %}bi-star-fill text-warning{% else %}bi-star text-white{% endif %}"></i>
+                    </button>
+                    {% endif %}
+
+                    {% if playlist.id == id_mais_ouvida %}
+                        <span class="badge bg-success position-absolute top-0 start-0 m-2" style="z-index: 10;">
+                            <i class="bi bi-fire"></i> MAIS ASSISTIDA
+                        </span>
+                    {% endif %}
+
+                    <a href="{% url 'playlist_detail' pk=playlist.pk %}" class="stretched-link">
+                        {% if playlist.capa %}
+                            <img src="{{ playlist.capa.url }}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                        {% endif %}
+                    </a>
+
+                    <div class="card-body p-0 pt-3">
+                        <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.nome }}</h5>
+                        <p class="card-text text-muted small">
+                            {{ playlist.musicas.count }} música{{ playlist.musicas.count|pluralize:"s" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">Nenhuma playlist encontrada.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.btn-favoritar').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // Impede o clique de ir para a playlist
+            const playlistId = this.dataset.id;
+            
+            fetch(`/playlist/${playlistId}/favoritar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                location.reload(); 
+            });
+        });
+    });
+</script>
+
+{% endblock %}

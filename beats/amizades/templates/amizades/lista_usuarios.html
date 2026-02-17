@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Comunidade Beats{% endblock %}
+
+{% block content %}
+<style>
+    .user-list, .requests-list {
+        display: grid;
+        gap: 1rem;
+        list-style: none;
+        padding: 0;
+    }
+    .user-card, .request-card {
+        background-color: #2c2c2c;
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+    .actions button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    .actions .add-btn {
+        background-color: #1ed760; /* Verde Spotify */
+        color: #111;
+    }
+    .actions .add-btn:hover {
+        background-color: #16a84f;
+    }
+    .actions .accept-btn {
+        background-color: #007bff;
+        color: white;
+        margin-right: 0.5rem;
+    }
+    .actions .accept-btn:hover {
+        background-color: #0056b3;
+    }
+    .actions .reject-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+    .actions .reject-btn:hover {
+        background-color: #a71d2a;
+    }
+    .status-badge {
+        background-color: #555;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    .no-content {
+        color: #aaa;
+        padding: 1rem;
+        text-align: center;
+        border: 1px dashed #444;
+        border-radius: 4px;
+    }
+</style>
+
+<h1>Comunidade Beats</h1>
+
+{% if messages %}
+    <ul style="list-style:none; padding:0; margin-bottom: 1rem;">
+    {% for message in messages %}
+        <li class="{{ message.tags }}" style="padding: 0.5rem; background: #333; color: white; border-radius: 4px; margin-bottom: 0.5rem;">{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<h2>Solicitações Pendentes Recebidas ({{ solicitacoes_recebidas|length }})</h2>
+<hr style="border-color: #444; margin-bottom: 1rem;">
+
+{% if solicitacoes_recebidas %}
+    <ul class="requests-list">
+        {% for solicitacao in solicitacoes_recebidas %}
+            <li class="request-card">
+                <div class="user-info">
+                    {% if solicitacao.from_user.profile.avatar %}
+                        <img src="{{ solicitacao.from_user.profile.avatar.url }}" alt="Avatar" class="avatar">
+                    {% else %}
+                        <div class="avatar">?</div>
+                    {% endif %}
+                    <span>Solicitação de <strong>{{ solicitacao.from_user.username }}</strong></span>
+                </div>
+                
+                <div class="actions">
+                    <form method="post" action="{% url 'amizades:responder' pk=solicitacao.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="acao" value="aceitar" class="accept-btn">Aceitar</button>
+                    </form>
+                    <form method="post" action="{% url 'amizades:responder' pk=solicitacao.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="acao" value="recusar" class="reject-btn">Recusar</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="no-content">Nenhuma solicitação de amizade pendente no momento.</div>
+{% endif %}
+
+<h2 style="margin-top: 2rem;">Encontrar Novos Amigos</h2>
+<hr style="border-color: #444; margin-bottom: 1rem;">
+
+{% if todos_usuarios %}
+    <ul class="user-list">
+        {% for usuario in todos_usuarios %}
+            {# A correção é feita aqui: apenas definimos a variável convertida para string no with. #}
+            {% with usuario_id_str=usuario.pk|stringformat:"s" %}
+                <li class="user-card">
+                    <div class="user-info">
+                        {% if usuario.profile.avatar %}
+                            <img src="{{ usuario.profile.avatar.url }}" alt="Avatar" class="avatar">
+                        {% else %}
+                            <div class="avatar">?</div>
+                        {% endif %}
+                        <span>{{ usuario.username }}</span>
+                    </div>
+
+                    <div class="actions">
+                        {# Checagem de PK em solicitacoes_enviadas (que é uma lista de inteiros PKs) #}
+                        {% if usuario.pk in solicitacoes_enviadas %}
+                            <span class="status-badge" style="background-color: #f7b300;">Solicitação Enviada</span>
+                        {# Checagem de STRING ID em amigos_aceitos (que é um Set de strings de IDs) #}
+                        {% elif usuario_id_str in amigos_aceitos %} 
+                            <span class="status-badge" style="background-color: #1ed760;">Amigo</span>
+                        {% else %}
+                            <form method="post" action="{% url 'amizades:adicionar' pk=usuario.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="add-btn">Adicionar Amigo</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endwith %}
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="no-content">Nenhum outro usuário encontrado na comunidade.</div>
+{% endif %}
+
+{% endblock %}

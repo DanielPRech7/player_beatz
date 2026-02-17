@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Meu perfil{% endblock %}
+{% block content %}
+<h1>Meu perfil</h1>
+
+{% if not profile %}
+  <p>Você ainda não possui perfil. <a href="{% url 'profiles:create' %}">Criar perfil</a></p>
+{% else %}
+  <div style="display:flex; gap:16px; align-items:center;">
+    {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" alt="Avatar" style="width:96px;height:96px;border-radius:50%;object-fit:cover;">
+    {% else %}
+      <div style="width:96px;height:96px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;">
+        <span>Sem avatar</span>
+      </div>
+    {% endif %}
+    <div>
+      <p><strong>Usuário:</strong> {{ request.user.username }}</p>
+      <p><strong>Nome completo:</strong> {{ profile.user.get_full_name|default:"—" }}</p>
+      <p><strong>Email:</strong> {{ request.user.email }}</p>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <p><strong>Bio:</strong><br>{{ profile.bio|linebreaksbr }}</p>
+  </div>
+
+  <p style="margin-top:16px;">
+    <a href="{% url 'profiles:edit' %}">Editar perfil</a> |
+    <a href="{% url 'profiles:signout' %}">Sair</a>
+  </p>
+
+{% endif %}
+{% endblock %}

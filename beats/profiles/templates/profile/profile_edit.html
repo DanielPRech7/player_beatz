@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Editar perfil{% endblock %}
+{% block content %}
+<h1>Editar perfil</h1>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    <label for="{{ form.bio.id_for_label }}">First Name</label>
+    {{ form.first_name }} {{ form.first_name.errors }}
+  </div>
+  <div>
+    <label for="{{ form.bio.id_for_label }}">Last Name</label>
+    {{ form.last_name }} {{ form.last_name.errors }}
+  </div>
+  <div>
+    <label for="{{ form.bio.id_for_label }}">Bio</label>
+    {{ form.bio }} {{ form.bio.errors }}
+  </div>
+  <div>
+    <label for="{{ form.avatar.id_for_label }}">Avatar</label>
+    {{ form.avatar }} {{ form.avatar.errors }}
+  </div>
+  <button type="submit">Salvar mudanças</button>
+  <a href="{% url 'profiles:detail' %}">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,49 @@
+name: Pre-Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version:
+    if: ${{ !startsWith(github.event.head_commit.message, 'bump:') }}
+    runs-on: ubuntu-latest
+    name: "Version"
+    outputs:
+      version: ${{ steps.cz.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - id: cz
+        name: Create bump and changelog
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          changelog: false
+          prerelease: rc
+          check_consistency: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print Version
+        run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
+
+  release:
+    name: Release
+    needs: version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          append_body: false
+          tag_name: ${{ needs.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
