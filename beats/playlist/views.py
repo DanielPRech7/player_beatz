@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Playlist, Musica, PlaylistRating, PlaylistProgress
 import logging
 from django.db.models import Q, F
-from beats.amizades.models import Amizade
+from beats.friendships.models import Friendship
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.views.generic import UpdateView
@@ -148,9 +148,9 @@ class PlaylistDetailView(DetailView):
 
         # 3. Lógica de Amigos (Sua lógica original corrigida)
         if user.is_authenticated:
-            amigos_query = Amizade.objects.filter(
+            amigos_query = Friendship.objects.filter(
                 (Q(from_user=user) | Q(to_user=user)),
-                status=Amizade.STATUS_ACEITA
+                status=Friendship.Status.ACCEPTED
             ).values_list('from_user_id', 'to_user_id')
 
             # Simplificando a extração de IDs de amigos

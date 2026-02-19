@@ -4,14 +4,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.contrib import messages
-from .models import Amizade
+from .models import Friendship
 
 User = get_user_model()
 
 class ListaUsuariosView(LoginRequiredMixin, ListView):
 
     model = User
-    template_name = 'amizades/lista_usuarios.html'
+    template_name = 'friendships/user_list.html'
     context_object_name = 'todos_usuarios'
     paginate_by = 15
 
@@ -22,20 +22,20 @@ class ListaUsuariosView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        context['solicitacoes_recebidas'] = Amizade.objects.filter(
+        context['solicitacoes_recebidas'] = Friendship.objects.filter(
             to_user=user, 
-            status=Amizade.STATUS_PENDENTE
+            status=Friendship.Status.PENDING
         ).select_related('from_user__profile')
         
-        context['solicitacoes_enviadas'] = Amizade.objects.filter(
+        context['solicitacoes_enviadas'] = Friendship.objects.filter(
             from_user=user, 
-            status=Amizade.STATUS_PENDENTE
+            status=Friendship.Status.PENDING
         ).values_list('to_user__pk', flat=True)
         
         amigos_aceitos_q = Q(from_user=user) | Q(to_user=user)
-        context['amigos_aceitos_ids'] = Amizade.objects.filter(
+        context['amigos_aceitos_ids'] = Friendship.objects.filter(
             amigos_aceitos_q, 
-            status=Amizade.STATUS_ACEITA
+            status=Friendship.Status.ACCEPTED
         ).values_list('from_user__pk', 'to_user__pk')
         
         amigos_ids = set()
@@ -55,15 +55,15 @@ class AdicionarAmigoView(LoginRequiredMixin, View):
 
         if from_user == to_user:
             messages.error(request, "Você não pode enviar uma solicitação de amizade para si mesmo.")
-            return redirect('amizades:lista')
+            return redirect('friendships:lista')
 
         try:
-            Amizade.objects.create(from_user=from_user, to_user=to_user)
+            Friendship.objects.create(from_user=from_user, to_user=to_user)
             messages.success(request, f"Solicitação de amizade enviada para {to_user.username}.")
         except Exception:
             messages.warning(request, f"A solicitação de amizade para {to_user.username} já foi enviada ou já é um amigo.")
             
-        return redirect('amizades:lista')
+        return redirect('friendships:lista')
 
 
 class ResponderAmigoView(LoginRequiredMixin, View):
@@ -73,19 +73,19 @@ class ResponderAmigoView(LoginRequiredMixin, View):
         acao = request.POST.get('acao')
 
         solicitacao = get_object_or_404(
-            Amizade, 
+            Friendship, 
             pk=solicitacao_id, 
             to_user=request.user, 
-            status=Amizade.STATUS_PENDENTE
+            status=Friendship.Status.PENDING
         )
         
         if acao == 'aceitar':
-            solicitacao.aceitar()
+            solicitacao.accept()
             messages.success(request, f"Solicitação de amizade de {solicitacao.from_user.username} aceita.")
         elif acao == 'recusar':
-            solicitacao.recusar()
+            solicitacao.reject()
             messages.info(request, f"Solicitação de amizade de {solicitacao.from_user.username} recusada.")
         else:
             messages.error(request, "Ação inválida.")
 
-        return redirect('amizades:lista')
+        return redirect('friendships:lista')

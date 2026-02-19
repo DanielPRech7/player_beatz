@@ -9,31 +9,36 @@ from django.views.generic import CreateView, DetailView, UpdateView
 from beats.profiles.forms import SignUpForm, SignInForm, ProfileEditForm
 from beats.profiles.models import Profile
 
-
+#CreateView feita para criar novos registros no banco de dados.
+# Cria novos usuarios
 class SignUpView(CreateView):
     template_name = "profile/signup.html"
     form_class = SignUpForm
     success_url = reverse_lazy("profiles:detail")
 
     def form_valid(self, form):
-        response = super().form_valid(form)
+        response = super().form_valid(form) #comando para salvar o formulario
         login(self.request, self.object)
         messages.success(self.request, "Conta criada com sucesso!")
 
         return response
 
-
+#decide se o usuario tem acesso a pagina ou nao.
 class SignInView(View):
     template_name = "profile/signin.html"
 
+    #direcionado tela de login
     def get(self, request):
+        #checa se estou conectado, se sim, me direciona para a pagina de perfil
         if request.user.is_authenticated:
             return redirect("profiles:detail")
         return render(request, self.template_name, {"form": SignInForm()})
 
+    # tentativa de login
     def post(self, request):
         form = SignInForm(request.POST)
 
+        # verifica se preencheu todos os campos corretamente
         if not form.is_valid():
             messages.error(request, "Preencha os campos corretamente.")
             return render(request, self.template_name, {"form": form})
@@ -56,17 +61,7 @@ class SignInView(View):
         messages.error(request, "Usuário ou senha inválidos.")
         return render(request, self.template_name, {"form": form})
 
-
-
-# class ProfileDetailView(LoginRequiredMixin, DetailView):
-#     template_name = "profile/profile_detail.html"
-#     context_object_name = "profile"
-
-#     def get_object(self, queryset=None):
-#         user = self.request.user
-
-#         return user.profile
-
+# pagina do usuario, onde ele pode ver suas informações e editar seu perfil
 class ProfileDetailView(LoginRequiredMixin, DetailView):
     template_name = "profile/profile_detail.html"
     context_object_name = "profile"
@@ -77,33 +72,20 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         profile, created = Profile.objects.get_or_create(user=user)
         return profile
 
-# class ProfileEditView(LoginRequiredMixin, UpdateView):
-#     template_name = "profile/profile_edit.html"
-#     form_class = ProfileEditForm
-#     success_url = reverse_lazy("profiles:detail")
-
-#     def get_object(self, queryset=None):
-#         profile, created = Profile.objects.get_or_create(user=self.request.user)
-#         return profile
-
-#     def form_valid(self, form):
-#         messages.success(self.request, "Perfil atualizado com sucesso!")
-#         return super().form_valid(form)
-
+# nao permite acessar a pagina de edição se o usuario nao estiver logado
 class ProfileEditView(LoginRequiredMixin, UpdateView):
     template_name = "profile/profile_edit.html"
     form_class = ProfileEditForm
     success_url = reverse_lazy("profiles:detail")
 
     def get_object(self, queryset=None):
-        # Edita SEMPRE o perfil do usuário logado
         return self.request.user.profile
 
     def form_valid(self, form):
         messages.success(self.request, "Perfil atualizado com sucesso!")
         return super().form_valid(form)
     
-
+# função para deslogar o usuario
 def signout_view(request):
     logout(request)
     messages.info(request, "Você saiu da sua conta.")

@@ -11,10 +11,11 @@ def trigger_error(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('sentry-debug/', trigger_error),
-    path('amigos/', include('beats.amizades.urls', namespace='amizades')),
+    path('amigos/', include('beats.friendships.urls', namespace='friendships')),
     path('profile/', include('beats.profiles.urls', namespace='profiles')),
     path('', include('beats.playlist.urls')),
 ]
 
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Comunidade Beats{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'friendships/friendships.css' %}">
+
+<h1>Comunidade Beats</h1>
+
+{% if messages %}
+    <ul class="messages-list">
+    {% for message in messages %}
+        <li class="message-item {{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<h2>Solicitações Pendentes Recebidas ({{ solicitacoes_recebidas|length }})</h2>
+<hr class="section-divider">
+
+{% if solicitacoes_recebidas %}
+    <ul class="requests-list">
+        {% for solicitacao in solicitacoes_recebidas %}
+            <li class="request-card">
+                <div class="user-info">
+                    {% if solicitacao.from_user.profile.avatar %}
+                        <img src="{{ solicitacao.from_user.profile.avatar.url }}" alt="Avatar" class="avatar">
+                    {% else %}
+                        <div class="avatar">?</div>
+                    {% endif %}
+                    <span>Solicitação de <strong>{{ solicitacao.from_user.username }}</strong></span>
+                </div>
+                
+                <div class="actions">
+                    <form method="post" action="{% url 'friendships:responder' pk=solicitacao.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" name="acao" value="aceitar" class="accept-btn">Aceitar</button>
+                    </form>
+                    <form method="post" action="{% url 'friendships:responder' pk=solicitacao.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" name="acao" value="recusar" class="reject-btn">Recusar</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="no-content">Nenhuma solicitação de amizade pendente no momento.</div>
+{% endif %}
+
+<h2 class="mt-2">Encontrar Novos Amigos</h2>
+<hr class="section-divider">
+
+{% if todos_usuarios %}
+    <ul class="user-list">
+        {% for usuario in todos_usuarios %}
+            {% with usuario_id_str=usuario.pk|stringformat:"s" %}
+                <li class="user-card">
+                    <div class="user-info">
+                        {% if usuario.profile.avatar %}
+                            <img src="{{ usuario.profile.avatar.url }}" alt="Avatar" class="avatar">
+                        {% else %}
+                            <div class="avatar">?</div>
+                        {% endif %}
+                        <span>{{ usuario.username }}</span>
+                    </div>
+
+                    <div class="actions">
+                        {% if usuario.pk in solicitacoes_enviadas %}
+                            <span class="status-badge pending">Solicitação Enviada</span>
+                        {% elif usuario_id_str in amigos_aceitos %} 
+                            <span class="status-badge friend">Amigo</span>
+                        {% else %}
+                            <form method="post" action="{% url 'friendships:adicionar' pk=usuario.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="add-btn">Adicionar Amigo</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endwith %}
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="no-content">Nenhum outro usuário encontrado na comunidade.</div>
+{% endif %}
+
+{% endblock %}

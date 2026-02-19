@@ -59,7 +59,7 @@ PROJECT_APPS = [
     'beats.playlist',
     'beats.core',
     'beats.profiles',
-    'beats.amizades',
+    'beats.friendships',
     ]
 
 INSTALLED_APPS += EXTRA_APPS
@@ -164,7 +164,8 @@ LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -172,7 +173,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",    
+    BASE_DIR / "static",
+    BASE_DIR / "beats" / "friendships" / "css",    
 ]
 
 MEDIA_URL = '/media/'
