@@ -1,0 +1,67 @@
+.playlist-card {
+    background-color: #2a2a2a;
+    min-height: 250px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.playlist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5) !important;
+}
+
+.playlist-card-most-played {
+    box-shadow: 0 0 20px rgba(25, 135, 84, 0.6) !important;
+    background-color: #2a2a2a;
+}
+
+.content-area {
+    background-color: #121212;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar-min-height {
+    min-height: 100vh;
+}
+
+/* Botões da sidebar */
+.btn-sidebar-text {
+    font-size: 1.1rem;
+}
+
+/* Filtro card */
+.filter-card {
+    background-color: #2a2a2a;
+    border: none;
+}
+
+/* Estrela do badge mais assistida */
+.badge-most-played {
+    z-index: 10;
+}
+
+/* Estilo para a estrela não ser "atropelada" pelo link do card */
+.btn-favoritar {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 20;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: background 0.3s;
+}
+
+.btn-favoritar:hover {
+    background: rgba(0,0,0,0.8);
+}
+
