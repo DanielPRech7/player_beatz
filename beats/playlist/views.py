@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404 
 from django.views import View 
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import DetailView, CreateView
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
@@ -12,14 +12,12 @@ from django.db.models import Q, F
 from beats.friendships.models import Friendship
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.views.generic import UpdateView
 from django_filters.views import FilterView
 from .filters import PlaylistFilter
-from django.db.models import Q, Avg, Count
+from django.db.models import Q, Avg
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 User = get_user_model()
@@ -36,31 +34,8 @@ def favoritar_playlist(request, pk):
         playlist.favoritos.add(request.user)
         favorito = True
     return JsonResponse({'favorito': favorito})
-
-class PlaylistListView(ListView):
-    model = Playlist
-    template_name = 'playlist/playlist_list.html'
-    context_object_name = 'playlists'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        mais_ouvida = Playlist.objects.annotate(
-            tempo_total=Sum('playlistprogress__segundos_assistidos')
-        ).order_by('-tempo_total').first()
-
-        if mais_ouvida and mais_ouvida.tempo_total:
-            context['id_mais_ouvida'] = mais_ouvida.id
-        else:
-            context['id_mais_ouvida'] = None
-            
-        return context
-
-    def get(self, request, *args, **kwargs):
-        logger.info("Playlist list view foi acessada.")
-        return super().get(request, *args, **kwargs)
     
-class PlaylistListView(FilterView): # Alterado de ListView para FilterView
+class PlaylistListView(FilterView):
     model = Playlist
     template_name = 'playlist/playlist_list.html'
     context_object_name = 'playlists'
@@ -132,66 +107,33 @@ class PlaylistDetailView(DetailView):
         playlist_atual = self.object
         user = self.request.user
 
-        # 1. Músicas da playlist atual
         musicas_ids = playlist_atual.musicas.values_list('id', flat=True)
 
-        # 2. Buscar outras playlists que contenham essas músicas
-        # Filtramos playlists que não sejam a atual e que tenham músicas em comum
         outras_playlists = Playlist.objects.filter(
             musicas__id__in=musicas_ids
         ).exclude(id=playlist_atual.id).distinct()
-
-        # Se você tiver um campo 'criador' no seu Model Playlist, 
-        # use .select_related('criador') para performance.
         
         context['historico_compartilhado'] = outras_playlists
 
-        # 3. Lógica de Amigos (Sua lógica original corrigida)
         if user.is_authenticated:
             amigos_query = Friendship.objects.filter(
                 (Q(from_user=user) | Q(to_user=user)),
                 status=Friendship.Status.ACCEPTED
             ).values_list('from_user_id', 'to_user_id')
 
-            # Simplificando a extração de IDs de amigos
             ids_set = {uid for f_id, t_id in amigos_query for uid in (f_id, t_id) if uid != user.id}
 
             context['ultima_playlist_amigo'] = Playlist.objects.filter(
                 playlistprogress__user_id__in=ids_set
             ).distinct().order_by('-id').first()
 
-            # Progresso do usuário logado
             progresso = playlist_atual.playlistprogress_set.filter(user=user).first()
             context['tempo_do_banco'] = progresso.segundos_assistidos if progresso else 0
         
-        # 4. Avaliações (Opcional, mas recomendado para o seu template)
         context['media_avaliacoes'] = playlist_atual.playlistrating_set.aggregate(Avg('nota'))['nota__avg'] or 0
         context['todas_avaliacoes'] = playlist_atual.playlistrating_set.all().order_by('-data_avaliacao')
 
         return context
-
-class AvaliarPlaylistView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        playlist = get_object_or_404(Playlist, pk=pk)
-        nota = request.POST.get('nota')
-        comentario = request.POST.get('comentario', '')
-
-        if not nota or not nota.isdigit() or not (1 <= int(nota) <= 5):
-            messages.error(request, 'Por favor, forneça uma nota válida.')
-            return redirect('playlist_detail', pk=pk)
-
-        rating, created = PlaylistRating.objects.update_or_create(
-            user=request.user,
-            playlist=playlist,
-            defaults={'nota': nota, 'comentario': comentario}
-        )
-
-        if created:
-            messages.success(request, 'Avaliação criada com sucesso!')
-        else:
-            messages.success(request, 'Avaliação atualizada com sucesso!')
-
-        return redirect('playlist_detail', pk=pk)
 
 class PlaylistCreateView(CreateView):
     model = Playlist
