@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Playlist: {{ playlist.nome }}{% endblock %}
+{% block title %}Playlist: {{ playlist.name }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'playlist.css' %}">
@@ -27,24 +27,24 @@
     
     <div class="col-md-10 p-5 content-area">
         <div class="playlist-header d-flex align-items-end p-4 mb-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-            <div class="capa-container position-relative">
-                {% if playlist.capa %}
-                    <img src="{{ playlist.capa.url }}" id="capa-preview" class="shadow-lg rounded" width="120" height="120" style="width:120px;height:120px;object-fit:cover;">
+            <div class="cover-container position-relative">
+                {% if playlist.cover %}
+                    <img src="{{ playlist.cover.url }}" id="cover-preview" class="shadow-lg rounded" width="120" height="120" style="width:120px;height:120px;object-fit:cover;">
                 {% else %}
-                    <img src="{% static 'images/placeholder_cover.png' %}" id="capa-preview" class="shadow-lg rounded" width="120" height="120" style="width:120px;height:120px;object-fit:cover;">
+                    <img src="{% static 'images/placeholder_cover.png' %}" id="cover-preview" class="shadow-lg rounded" width="120" height="120" style="width:120px;height:120px;object-fit:cover;">
                 {% endif %}
 
-                <form action="{% url 'upload_capa' playlist.pk %}" method="post" enctype="multipart/form-data" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
+                <form action="{% url 'upload_cover' playlist.pk %}" method="post" enctype="multipart/form-data" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
                     {% csrf_token %}
-                    <label for="nova_capa" class="btn btn-light btn-sm cursor-pointer">
-                        <i class="bi bi-camera"></i> Alterar Capa
+                    <label for="new_cover" class="btn btn-light btn-sm cursor-pointer">
+                        <i class="bi bi-camera"></i> Change Cover
                     </label>
-                    <input type="file" name="nova_capa" id="nova_capa" class="d-none" onchange="this.form.submit()">
+                    <input type="file" name="new_cover" id="new_cover" class="d-none" onchange="this.form.submit()">
                 </form>
             </div>
             
             <div class="ms-4">
-                <h1 class="display-1 fw-bold text-white">{{ playlist.nome }}</h1>
+                <h1 class="display-1 fw-bold text-white">{{ playlist.name }}</h1>
             </div>
         </div>
 
@@ -57,13 +57,13 @@
 
         <div class="card-spotify p-4 mb-5">
             <h2 class="h4 text-white mb-3">Adicionar Música</h2>
-            <form method="post" action="{% url 'adicionar_musica_playlist' pk=playlist.pk %}" class="d-flex align-items-center">
+            <form method="post" action="{% url 'add_song_to_playlist' pk=playlist.pk %}" class="d-flex align-items-center">
                 {% csrf_token %}
-                <select name="musica_id" required class="form-select me-3 select-musica">
+                <select name="song_id" required class="form-select me-3 select-song">
                     <option value="">-- Selecione uma Música --</option>
-                    {% for musica in todas_musicas %}
-                        {% if musica not in playlist.musicas.all %}
-                            <option value="{{ musica.pk }}">{{ musica.titulo }} - {{ musica.artista }}</option>
+                    {% for song in all_songs %}
+                        {% if song not in playlist.songs.all %}
+                            <option value="{{ song.pk }}">{{ song.title }} - {{ song.artist }}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
@@ -73,23 +73,23 @@
 
         <h2 class="h3 text-white mb-4">Músicas da Playlist:</h2>
 
-        {% if playlist.musicas.all %}
-            {% for musica in playlist.musicas.all %}
-                <div class="card p-3 mb-3 musica-item">
+        {% if playlist.songs.all %}
+            {% for song in playlist.songs.all %}
+                <div class="card p-3 mb-3 song-item">
                     <div class="row g-0">
                         <div class="col-md-6">
-                            <h3 class="h5 text-white">{{ musica.titulo }}</h3>
-                            <p class="text-muted">{{ musica.artista }}</p>
-                            {% if musica.youtube_id %}
-                                <a href="https://www.youtube.com/watch?v={{ musica.youtube_id }}" target="_blank" class="text-info small">Ver no YouTube</a>
+                            <h3 class="h5 text-white">{{ song.title }}</h3>
+                            <p class="text-muted">{{ song.artist }}</p>
+                            {% if song.youtube_id %}
+                                <a href="https://www.youtube.com/watch?v={{ song.youtube_id }}" target="_blank" class="text-info small">Watch on YouTube</a>
                             {% else %}
                                 <p class="text-warning small">ID do YouTube não cadastrado.</p>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            {% if musica.youtube_id %}
+                            {% if song.youtube_id %}
                                 <div class="ratio ratio-16x9">
-                                    <iframe id="player-{{ musica.id }}" class="youtube-iframe" data-video-id="{{ musica.youtube_id }}" src="https://www.youtube-nocookie.com/embed/{{ musica.youtube_id }}?enablejsapi=1" title="{{ musica.titulo }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="origin" allowfullscreen></iframe>
+                                    <iframe id="player-{{ song.id }}" class="youtube-iframe" data-video-id="{{ song.youtube_id }}" src="https://www.youtube-nocookie.com/embed/{{ song.youtube_id }}?enablejsapi=1" title="{{ song.title }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="origin" allowfullscreen></iframe>
                                 </div>
                             {% endif %}
                         </div>
@@ -105,15 +105,15 @@
         <div class="card-spotify p-4 mb-5">
             <h2 class="h4 text-white mb-3">Também adicionaram estas músicas</h2>
             
-            {% if historico_compartilhado %}
+            {% if shared_history %}
                 <ul class="list-group list-group-flush">
-                    {% for outra_playlist in historico_compartilhado %}
-                        <li class="d-flex justify-content-between align-items-center historico-item">
+                    {% for other_playlist in shared_history %}
+                        <li class="d-flex justify-content-between align-items-center history-item">
                             <div>
-                                <strong class="text-white">{{ outra_playlist.criador.username|default:"Usuário" }}</strong> 
-                                adicionou à playlist 
-                                <a href="{% url 'playlist_detail' outra_playlist.pk %}" class="text-success text-decoration-none fw-bold">
-                                    {{ outra_playlist.nome }}
+                                <strong class="text-white">{{ other_playlist.creator.username|default:"User" }}</strong>
+                                adicionou à playlist
+                                <a href="{% url 'playlist_detail' other_playlist.pk %}" class="text-success text-decoration-none fw-bold">
+                                    {{ other_playlist.name }}
                                 </a>
                             </div>
                             <i class="bi bi-music-note-list"></i>
@@ -138,7 +138,7 @@
     let segundosNaoSincronizados = 0;
     
 
-    let watchTime = parseInt("{{ tempo_do_banco|default:0 }}"); 
+    let watchTime = parseInt("{{ db_time|default:0 }}"); 
 
     function updateWatchTimeDisplay() {
         const hours = Math.floor(watchTime / 3600);
@@ -191,14 +191,14 @@
         }, 1000);
     }
 
-    function sincronizarComBanco() {
+    function syncWithDatabase() {
         if (segundosNaoSincronizados === 0) return;
 
         const formData = new FormData();
-        formData.append('segundos', segundosNaoSincronizados);
+        formData.append('seconds', segundosNaoSincronizados);
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        fetch("{% url 'atualizar_tempo_playlist' playlist.id %}", {
+        fetch("{% url 'update_playlist_time' playlist.id %}", {
             method: "POST",
             body: formData,
             headers: {
@@ -209,19 +209,19 @@
         .then(data => {
             if (data.status === 'success') {
                 segundosNaoSincronizados = 0;
-                console.log("Sincronizado com o banco. Total: " + data.total_acumulado + "s");
+                console.log("Synced with database. Total: " + data.total_accumulated + "s");
             }
         })
-        .catch(error => console.error('Erro na sincronização AJAX:', error));
+        .catch(error => console.error('AJAX sync error:', error));
     }
 
     function stopWatchTimer() {
         clearInterval(watchInterval);
         watchInterval = null;
-        sincronizarComBanco();
+        syncWithDatabase();
     }
 
-    window.addEventListener("beforeunload", sincronizarComBanco);
+    window.addEventListener("beforeunload", syncWithDatabase);
 
 </script>
 

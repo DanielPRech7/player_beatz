@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import Musica, Playlist
+from .models import Song, Playlist
 
-@admin.register(Musica)
-class MusicaAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'artista', 'youtube_id')
-    search_fields = ('titulo', 'artista')
+@admin.register(Song)
+class SongAdmin(admin.ModelAdmin):
+    list_display = ('title', 'artist', 'youtube_id')
+    search_fields = ('title', 'artist')
 
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    filter_horizontal = ('musicas',)
+    list_display = ('name',)
+    filter_horizontal = ('songs',)

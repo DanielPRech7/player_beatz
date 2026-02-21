@@ -24,7 +24,7 @@
             </li>
         </ul>
         <hr class="text-secondary">
-        <a href="{% url 'criar_playlist' %}" class="btn btn-success w-100 mb-3 btn-sidebar-text">
+        <a href="{% url 'create_playlist' %}" class="btn btn-success w-100 mb-3 btn-sidebar-text">
             + Criar Nova Playlist
         </a>
         <a href="{% url 'friendships:lista' %}" class="btn btn-primary w-100 btn-sidebar-text">
@@ -44,14 +44,14 @@
                                 <i class="bi bi-star-fill text-warning"></i>
                             </button>
                             <a href="{% url 'playlist_detail' pk=playlist.pk %}" class="stretched-link">
-                                {% if playlist.capa %}
-                                    <img src="{{ playlist.capa.url }}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                                {% if playlist.cover %}
+                                    <img src="{{ playlist.cover.url }}" class="card-img-top rounded-3" alt="{{ playlist.name }}">
                                 {% else %}
-                                    <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                                    <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.name }}">
                                 {% endif %}
                             </a>
                             <div class="card-body p-0 pt-3">
-                                <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.nome }}</h5>
+                                <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.name }}</h5>
                             </div>
                         </div>
                     </div>
@@ -67,11 +67,11 @@
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="text-white small">Buscar por nome</label>
-                    {{ filter.form.nome }} 
+                    {{ filter.form.name }}
                 </div>
                 <div class="col-md-3">
                     <label class="text-white small">Ordenar por Tempo</label>
-                    <select name="sort_tempo" class="form-select">
+                    <select name="sort_time" class="form-select">
                         <option value="">Padrão</option>
                         <option value="mais_tempo" {% if request.GET.sort_tempo == 'mais_tempo' %}selected{% endif %}>Mais Assistidas</option>
                         <option value="menos_tempo" {% if request.GET.sort_tempo == 'menos_tempo' %}selected{% endif %}>Menos Assistidas</option>
@@ -88,33 +88,33 @@
             {% for playlist in playlists %}
             <div class="col">
                 <div class="card h-100 p-3 shadow-lg playlist-card position-relative 
-                    {% if playlist.id == id_mais_ouvida %} border border-success border-3 playlist-card-most-played {% endif %}"
+                    {% if playlist.id == most_listened_id %} border border-success border-3 playlist-card-most-played {% endif %}"
                     data-playlist-id="{{ playlist.id }}">
 
                     {% if user.is_authenticated %}
                     <button class="btn-favoritar" data-id="{{ playlist.id }}">
-                        <i class="bi {% if user in playlist.favoritos.all %}bi-star-fill text-warning{% else %}bi-star text-white{% endif %}"></i>
+                        <i class="bi {% if user in playlist.favorites.all %}bi-star-fill text-warning{% else %}bi-star text-white{% endif %}"></i>
                     </button>
                     {% endif %}
 
-                    {% if playlist.id == id_mais_ouvida %}
+                    {% if playlist.id == most_listened_id %}
                         <span class="badge bg-success position-absolute bottom-0 start-0 mb-4 ms-3" style="z-index: 10;">
                             <i class="bi bi-fire"></i> MAIS ASSISTIDA
                         </span>
                     {% endif %}
 
                     <a href="{% url 'playlist_detail' pk=playlist.pk %}" class="stretched-link">
-                        {% if playlist.capa %}
-                            <img src="{{ playlist.capa.url }}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                        {% if playlist.cover %}
+                            <img src="{{ playlist.cover.url }}" class="card-img-top rounded-3" alt="{{ playlist.name }}">
                         {% else %}
-                            <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.nome }}">
+                            <img src="{% static 'images/placeholder_cover.png' %}" class="card-img-top rounded-3" alt="{{ playlist.name }}">
                         {% endif %}
                     </a>
 
                     <div class="card-body p-0 pt-3">
-                        <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.nome }}</h5>
+                        <h5 class="card-title text-white mb-1 fw-bold">{{ playlist.name }}</h5>
                         <p class="card-text text-muted small">
-                            {{ playlist.musicas.count }} música{{ playlist.musicas.count|pluralize:"s" }}
+                            {{ playlist.songs.count }} song{{ playlist.songs.count|pluralize:"s" }}
                         </p>
                     </div>
                 </div>
