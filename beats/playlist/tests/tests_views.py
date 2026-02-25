@@ -5,6 +5,7 @@ from model_bakery import baker
 from beats.playlist.models import Playlist, Song, PlaylistProgress
 from beats.friendships.models import Friendship
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
 
@@ -61,3 +62,40 @@ class PlaylistViewsTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Summer Vibes", mail.outbox[0].body)
         self.assertEqual(mail.outbox[0].to, ['test@example.com'])
+
+    def test_update_playlist_cover_success(self):
+        self.client.login(username='dj_khaled', password='pass123')
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9'
+            b'\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00'
+            b'\x00\x02\x02\x4c\x01\x00\x3b'
+        )
+        img = SimpleUploadedFile('cover.gif', small_gif, content_type='image/gif')
+        
+        url = reverse('upload_cover', kwargs={'pk': self.playlist.pk})
+        response = self.client.post(url, {'new_cover': img})
+        
+        self.playlist.refresh_from_db()
+        self.assertRedirects(response, self.detail_url)
+
+    def test_update_playlist_cover_no_file(self):
+        self.client.login(username='dj_khaled', password='pass123')
+        url = reverse('upload_cover', kwargs={'pk': self.playlist.pk})
+        response = self.client.post(url, {})
+        
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(str(messages[0]), "No file selected.")
+
+    def test_playlist_create_view(self):
+        self.client.login(username='dj_khaled', password='pass123')
+        url = reverse('create_playlist')
+        response = self.client.post(url, {'name': 'Nova Playlist'})
+        self.assertEqual(response.status_code, 302)
+
+    def test_playlist_add_song_view(self):
+        self.client.login(username='dj_khaled', password='pass123')
+        new_song = baker.make(Song)
+        url = reverse('add_song_to_playlist', kwargs={'pk': self.playlist.pk})
+        
+        response = self.client.post(url, {'song_id': new_song.id})
+        self.assertIn(new_song, self.playlist.songs.all())
