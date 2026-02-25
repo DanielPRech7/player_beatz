@@ -1,0 +1,6 @@
+---
+commitizen:
+  merge_prefix: Merge branch 'main' into
+  name: cz_conventional_commits
+  tag_format: $version
+  version: 0.0.0
