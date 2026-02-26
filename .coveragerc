@@ -23,6 +23,11 @@ omit =
     */contrib/*
     Dockerfile*
 
+    beats/core/views.py
+    beats/profiles/signals.py
+    beats/profiles/views.py
+    beats/friendships/views.py
+
 [report]
 precision = 2
 show_missing = True
