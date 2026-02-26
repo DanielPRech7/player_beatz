@@ -48,5 +48,6 @@ class ProfileEditForm(forms.ModelForm):
 
         if commit:
             profile.user.save()
+            profile.save()
 
         return profile
