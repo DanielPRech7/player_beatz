@@ -26,16 +26,16 @@ services:
       - .media:/app/beats/media 
       - .staticfiles:/app/beats/staticfiles 
 
-  # nginx:
-  #   depends_on:
-  #     - web
-  #   restart: always
-  #   build:
-  #     context: nginx
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 80:80
-  #     - 443:443
-  #   volumes:
-  #     - .media:/app/beats/media 
-  #     - .staticfiles:/app/beats/staticfiles 
+  nginx:
+    depends_on:
+      - web
+    restart: always
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - .media:/app/beats/media 
+      - .staticfiles:/app/beats/staticfiles 
